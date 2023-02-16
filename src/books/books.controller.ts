@@ -1,6 +1,7 @@
 import { Controller,Get,Post,Delete,Put,Body } from '@nestjs/common';
-import { Param } from '@nestjs/common/decorators';
+import { Param ,Res} from '@nestjs/common/decorators';
 import { PrismaClient } from '@prisma/client';
+import { resolve4 } from 'dns/promises';
 
 const prisma = new PrismaClient();
 
@@ -42,42 +43,49 @@ export class BooksController {
 
     @Get()
     showBooks ():object{
-        return books
+        return prisma.book.findMany()   
     } 
     @Post("/store")
-    async addBook (@Body() body){
+    async addBook (@Body() body,@Res() res){
         await prisma.$connect()
         // books.push(body)
         // return books
+        
         const book = await prisma.book.create({
             data: body
         })
-        return book
+        res.send({msg : "book created" , book : book})
     }
     @Delete("/delete/:id")
-    async deleteBook(@Param() param){
+    async deleteBook(@Param() param,@Res() res){
         
         await prisma.book.delete({
            where:{
             id : param.id
            }      
         })
+        .then(book=>{
+            res.send({msg : "book deleted" , book : book})
+        })
 
-        // const id:number = parseInt(param.id)
-        // const results : bookType[] =  books.filter(item=>{
-        //     return item.id  !== id
-        // })
-
-        // books = results
-        // return books 
+        
     } 
     @Put("/update/:id")
-    updateBook(@Param() param,@Body() body){
-        const id:number = parseInt(param.id)
-        const results : bookType[] =  books.filter(item=>{
-            return item.id  !== id
+    async updateBook(@Param() param,@Body() body,@Res() res){
+     
+        await prisma.book.update({
+            where:{
+                id: param.id
+            },
+            data:{
+                title : body.title,
+                author: body.title,
+                date: body.date
+            }
         })
-        books = results
-        books.push(body)
+        .then(book=>{
+            res.send({msg : "book updated" , book : book})
+        })
+
     }
 }
