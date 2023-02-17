@@ -44,9 +44,20 @@ export class BooksController {
     @Get()
     showBooks ():object{
         return prisma.book.findMany()   
-    } 
+    }
+    
+    @Get("/:id")
+    showBookById(@Param() param){
+        return prisma.book.findUnique({
+            where:{
+                id:param.id
+            }
+        })
+    }
+
+
     @Post("/store")
-    async addBook (@Body() body,@Res() res){
+    async addBook (@Body() body:any,@Res() res){
         await prisma.$connect()
         // books.push(body)
         // return books
@@ -56,6 +67,8 @@ export class BooksController {
         })
         res.send({msg : "book created" , book : book})
     }
+
+
     @Delete("/delete/:id")
     async deleteBook(@Param() param,@Res() res){
         
@@ -67,12 +80,12 @@ export class BooksController {
         .then(book=>{
             res.send({msg : "book deleted" , book : book})
         })
-
         
     } 
+
+    
     @Put("/update/:id")
     async updateBook(@Param() param,@Body() body,@Res() res){
-     
         await prisma.book.update({
             where:{
                 id: param.id
@@ -86,6 +99,5 @@ export class BooksController {
         .then(book=>{
             res.send({msg : "book updated" , book : book})
         })
-
     }
 }
